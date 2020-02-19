@@ -25,18 +25,18 @@ function mockQueryCRM(email, subject, source) {
   return new Promise(function(resolve) {
     console.log(`Build mock CRM data for ${email}`);
 
-    const trackingId = subject.match(/\d+/g);
+    const trackingId = subject.match(/#[A-Z0-9]+/g);
 
     if (!trackingId)
-      return resolve({});
+      return resolve({info: {}});
 
     const info = {
       id: Math.floor(Math.random() * 1000),
-      trackingId: trackingId[0],
-      location: accounts[Math.round(Math.random() * accounts.length)],
+      trackingId: trackingId[0].substr(1),
+      location: accounts[Math.floor(Math.random() * accounts.length)],
       pickup: moment().subtract(Math.round(Math.random() * 48 + 24), 'hours').format('DD/MM/YY \\at HH:00'),
       delivery: moment().format('DD/MM/YY \\at HH:00'),
-      status: statuses[Math.round(Math.random() * statuses.length)],
+      status: statuses[Math.floor(Math.random() * statuses.length)],
     };
 
     resolve({info});
