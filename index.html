@@ -2,6 +2,7 @@
   <head>
     <link rel="stylesheet" type="text/css" href="index.css" />
     <script type="text/javascript" src="https://dl.frontapp.com/libs/frontjs.min.js"></script>
+    <script type="text/javascript" src="moment.js"></script>
     <script type="text/javascript" src="index.js"></script>
     <script type="text/javascript" src="mockCRM.js"></script>
   </head>
@@ -9,11 +10,6 @@
     <div class="plugin-div">
       <span id="name" class="font name"></span>
       <span id="handle" class="font handle">-</span>
-
-      <div class="navButtonRow width100percent">
-        <div id="infoButton" class="font navButton" onClick="showInfo()">Info</div>
-        <div id="notesButton" class="font navButton" onClick="showNotes()">Notes</div>
-      </div>
 
       <div id="infoSection" class="width100percent">
         <div class="column">
@@ -23,22 +19,35 @@
           </div>
   
           <div class="row">
-            <div class="rowItem infoKey font">Location</div>
+            <div class="rowItem infoKey font">Tracking Id</div>
+            <div class="rowItem infoValue font" id="tracking-id"></div>
+          </div>
+
+          <div class="row">
+            <div class="rowItem infoKey font">Account</div>
             <div class="rowItem infoValue font" id="location"></div>
           </div>
-  
+
+          <div class="row">
+            <div class="rowItem infoKey font">Pick-up date</div>
+            <div class="rowItem infoValue font" id="pickup"></div>
+          </div>
+
+          <div class="row">
+            <div class="rowItem infoKey font">Delivery date</div>
+            <div class="rowItem infoValue font" id="delivery"></div>
+          </div>
+
           <div class="row">
             <div class="rowItem infoKey font">Status</div>
-            <div class="rowItem infoValue font" id="status"></div>
+            <div class="rowItem infoValue font" id="status" onclick="updateStage()"></div>
           </div>
         </div>
       </div>
 
-      <div id="notesSection" class="width100percent displayNone">
-        <div class="column">
-          <button class="newNote font" onClick="createNote()">+ New Note</button>
-          <div class="column" id="notes"></div>
-        </div>
+      <div id="dropzone" class="width100percent">
+        <div id="dropzone-zone" class="font" onmouseover="enteredZone()" onmouseout="leftZone()" onmouseup="droppedZone()">Drop PoD here</div>
+        <div id="dropzone-done" class="font">proof-of-delivery.pdf</div>
       </div>
     </div>
   </body>

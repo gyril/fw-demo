@@ -13,8 +13,7 @@ Front.on('conversation', function (data) {
   hasConversation = true;
 
   // Load the Contact information based off of the event data. And set tab to 'Info'.
-  loadContact(data.contact);
-  showInfo();
+  loadContact(data.contact, data.conversation);
 });
 
 // Listen for the `no_conversation` event.  This can happen when opened to Inbox Zero.
@@ -27,33 +26,24 @@ Front.on('no_conversation', function () {
   // Display `No Contact` data and clear the notes and set the tab to 'Info'.
   displayContactInfo();
   displayCRMInfo();
-  clearNotes();
-  showInfo();
 });
 
 // Asynchronously loads the contact through our mocked CRM service once the body of the plugin is loaded.
 // This will call our mocked CRM service for data and then add the contact information and notes to the page.
-async function loadContact(contact) {
+async function loadContact(contact, conversation) {
   // Display Front contact info.
   displayContactInfo(contact.display_name || contact.handle, contact.handle);
 
   // Build and display our CRM data.
-  const crmData = await mockQueryCRM(contact.handle);
-  displayCRMInfo(crmData.info.id, crmData.info.location, crmData.info.status);
-
-  //  Load the notes from our CRM data.
-  displayNotes(crmData.notes);
-}
-
-// Asynchronously create another note through our mocked CRM service to add to the list.
-async function createNote() {
-  if (!hasConversation) {
-    console.log('No conversation selected.');
-    return;
-  }
-
-  const note = await mockPostNote();
-  displayNote(note);
+  const crmData = await mockQueryCRM(contact.handle, conversation.subject, contact.source);
+  displayCRMInfo(
+    crmData.info.id,
+    crmData.info.trackingId,
+    crmData.info.location,
+    crmData.info.pickup,
+    crmData.info.delivery,
+    crmData.info.status
+  );
 }
 
 // Displays Front contact information.
@@ -66,87 +56,43 @@ function displayContactInfo (display_name = "No Contact", handle = "-") {
 }
 
 // Displays mocked CRM Info.
-function displayCRMInfo (id = "-", location = "-", status = "-") {
+function displayCRMInfo (id = "-", trackingId = "-", location = "-", pickup = "-", delivery = "-", status = "-") {
   const idElement = document.getElementById("id");
+  const trackingIdElement = document.getElementById("tracking-id");
   const locationElement = document.getElementById("location");
+  const pickupElement = document.getElementById("pickup");
+  const deliveryElement = document.getElementById("delivery");
   const statusElement = document.getElementById("status");
 
   idElement.textContent = id;
+  trackingIdElement.textContent = trackingId;
   locationElement.textContent = location;
+  pickupElement.textContent = pickup;
+  deliveryElement.textContent = delivery;
   statusElement.textContent = status;
 }
 
-// Displays the mocked CRM notes.
-function displayNotes(notes) {
-  // Reset the Notes column to make room for the newly found notes.
-  clearNotes();
-
-  // Add each Note to the Notes Column object.
-  notes.forEach(note => {
-    displayNote(note);
+function updateStage() {
+  const mockStatuses = [{id: 0, title: 'Pending dispatch'}, {id: 1, title: 'Dispatched'}, {id: 2, title: 'Delivered'}, {id: 3, title: 'Lost contact'}, {id: 4, title: 'Available'}];
+  Front.fuzzylist({
+    items: mockStatuses
+  }, (item) => {
+    const statusElement = document.getElementById("status");
+    statusElement.textContent = item.title;
   });
 }
 
-// Removes the currently displayed Notes.
-function clearNotes() {
-  const noteColumns = document.getElementById("notes");
-  noteColumns.innerHTML = null;
+function enteredZone() {
+  const dzElement = document.getElementById("dropzone");
+  dzElement.classList.add('inside');
 }
 
-// Set the tab to Info and hide Notes.
-function showInfo() {
-  const infoButton = document.getElementById("infoButton");
-  const notesButton = document.getElementById("notesButton");
-  infoButton.classList.add('selected');
-  notesButton.classList.remove('selected');
-
-  const infoSection = document.getElementById("infoSection");
-  infoSection.classList.remove("displayNone");
-  const notesSection = document.getElementById("notesSection");
-  notesSection.classList.add("displayNone");
+function leftZone() {
+  const dzElement = document.getElementById("dropzone");
+  dzElement.classList.remove('inside');
 }
 
-// Set the tab to Notes and hide Info.
-function showNotes() {
-  const infoButton = document.getElementById("infoButton");
-  const notesButton = document.getElementById("notesButton");
-  infoButton.classList.remove('selected');
-  notesButton.classList.add('selected');
-
-  const infoSection = document.getElementById("infoSection");
-  infoSection.classList.add("displayNone");
-  const notesSection = document.getElementById("notesSection");
-  notesSection.classList.remove("displayNone");
-}
-
-function displayNote(note) {
-  const noteColumns = document.getElementById("notes");
-  // Build the shadowed backdrop for the Note.
-  let noteBlock = document.createElement("div");
-  noteBlock.classList.add("noteBlock");
-
-  // Build the Header of the note containing the author and the time written.
-  let noteHeader = document.createElement("p");
-  noteHeader.classList.add("row");
-
-  let noteHeaderAuthor = document.createElement("div");
-  noteHeaderAuthor.textContent = note.author;
-  noteHeaderAuthor.classList.add("font", "noteKey");
-
-  let noteHeaderTime = document.createElement("div");
-  noteHeaderTime.textContent = note.time;
-  noteHeaderTime.classList.add("font", "noteValue");
-
-  noteHeader.appendChild(noteHeaderAuthor);
-  noteHeader.appendChild(noteHeaderTime);
-
-  // Build the Blurb of the note;
-  let noteBlurb = document.createElement("p");
-  noteBlurb.textContent = note.blurb;
-  noteBlurb.classList.add("row", "font");
-
-  // Append the Header and the Blurb to the Note block.
-  noteBlock.appendChild(noteHeader);
-  noteBlock.appendChild(noteBlurb);
-  noteColumns.appendChild(noteBlock);
+function droppedZone() {
+  const dzElement = document.getElementById("dropzone");
+  dzElement.classList.add('dropped');
 }
