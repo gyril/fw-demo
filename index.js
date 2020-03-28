@@ -14,6 +14,12 @@ Front.on('conversation', function (data) {
 
   // Load the Contact information based off of the event data. And set tab to 'Info'.
   loadContact(data.contact, data.conversation);
+  
+  // If attachments, show them
+  resetAttachments();
+  if (data.message && data.message.attachments && data.message.attachments.length > 0) {
+    displayAttachments(data.message.attachments);
+  }
 });
 
 // Listen for the `no_conversation` event.  This can happen when opened to Inbox Zero.
@@ -36,6 +42,10 @@ async function loadContact(contact, conversation) {
 
   // Build and display our CRM data.
   const crmData = await mockQueryCRM(contact.handle, conversation.subject, contact.source);
+
+  // Cheap store
+  window.crmData = crmData.info;
+
   displayCRMInfo(
     crmData.info.id,
     crmData.info.trackingId,
@@ -47,7 +57,7 @@ async function loadContact(contact, conversation) {
 }
 
 // Displays Front contact information.
-function displayContactInfo (display_name = "No Contact", handle = "-") {
+function displayContactInfo(display_name = "No Contact", handle = "-") {
   const nameElement = document.getElementById("name");
   const handleElement = document.getElementById("handle");
 
@@ -56,7 +66,7 @@ function displayContactInfo (display_name = "No Contact", handle = "-") {
 }
 
 // Displays mocked CRM Info.
-function displayCRMInfo (id = "-", trackingId = "-", location = "-", pickup = "-", delivery = "-", status = "-") {
+function displayCRMInfo(id = "-", trackingId = "-", location = "-", pickup = "-", delivery = "-", status = "-") {
   const idElement = document.getElementById("id");
   const trackingIdElement = document.getElementById("tracking-id");
   const locationElement = document.getElementById("location");
@@ -82,17 +92,66 @@ function updateStage() {
   });
 }
 
-function enteredZone() {
-  const dzElement = document.getElementById("dropzone");
-  dzElement.classList.add('inside');
+function resetAttachments() {
+  document.getElementById('attachments').innerHTML = '';
 }
 
-function leftZone() {
-  const dzElement = document.getElementById("dropzone");
-  dzElement.classList.remove('inside');
+function displayAttachments(files) {
+  const holder = document.getElementById('attachments');
+  files.forEach(file => {
+    const div = document.createElement('li');
+    div.classList.add('attachment');
+    div.textContent = file.filename;
+    div.draggable = true;
+    div.addEventListener('dragstart', (ev) => ev.dataTransfer.setData('filename', file.filename));
+    holder.appendChild(div);
+  });
 }
 
-function droppedZone() {
-  const dzElement = document.getElementById("dropzone");
-  dzElement.classList.add('dropped');
+function allowDrop(event) {
+  event.preventDefault();
+}
+
+let hoverStateCounter = 0;
+function activate(event) {
+  if (hoverStateCounter === 0)
+    event.target.classList.add('active');
+  hoverStateCounter++;
+}
+
+function deactivate(event) {
+  hoverStateCounter--;
+  if (hoverStateCounter === 0)
+    event.target.classList.remove('active');
+}
+
+function dropped(e) {
+  console.log('dropped', e);
+  hoverStateCounter = 0;
+  const targetEl = e.target.classList.contains('attachment-drop') ? e.target : e.target.parentNode;
+  targetEl.childNodes[1].textContent = e.dataTransfer.getData('filename');
+  targetEl.classList.add('uploading');
+  console.log(e);
+  window.setTimeout(() => targetEl.childNodes[0].style.width = '20%', 500);
+  window.setTimeout(() => targetEl.childNodes[0].style.width = '50%', 1000);
+  window.setTimeout(() => targetEl.childNodes[0].style.width = '90%', 1500);
+  window.setTimeout(() => {
+    targetEl.childNodes[0].style.width = '0%';
+    targetEl.classList.remove('uploading');
+    targetEl.classList.add('done');
+  }, 2000);
+  
+}
+
+function draftUpdate() {
+  const data = window.crmData;
+
+  Front.reply({
+    body: `Here is an update on shipment #${data.trackingId} for ${data.location}:
+
+Cargo was picked up on ${data.pickup} and is expected to be delivered on ${data.delivery}. The current status is: ${data.status.toLowerCase()}.
+    
+Thanks for your patience, let us know if you have additional questions.
+`
+  });
 }

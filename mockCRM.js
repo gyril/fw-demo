@@ -19,8 +19,13 @@ const accounts = [
 const statuses = ['Pending dispatch', 'Dispatched', 'Delivered', 'Lost contact', 'Available'];
 
 function mockQueryCRM(email, subject, source) {
-  const dzElement = document.getElementById("dropzone");
-  dzElement.classList.remove('dropped');
+  const dropElements = document.getElementsByClassName("attachment-drop");
+  for (var i = 0; i < dropElements.length; i++) {
+    const el = dropElements[i];
+    el.innerHTML = '<span class="progress"></span><em>Drop attachment</em>';
+    el.classList.remove('active');
+    el.classList.remove('done');
+  }
 
   return new Promise(function(resolve) {
     console.log(`Build mock CRM data for ${email}`);

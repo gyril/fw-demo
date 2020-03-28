@@ -42,13 +42,31 @@
             <div class="rowItem infoKey font">Status</div>
             <div class="rowItem infoValue font" id="status" onclick="updateStage()"></div>
           </div>
+          <hr/>
+          <div class="row">
+            <div class="rowItem infoKey font">POD</div>
+            <div class="rowItem infoValue font attachment-drop" ondragover="allowDrop(event)" ondragenter="activate(event)" ondragleave="deactivate(event)" ondrop="dropped(event)"><span class="progress"></span><em>Drop attachment</em></div>
+          </div>
+
+          <div class="row">
+            <div class="rowItem infoKey font">LUMBER</div>
+            <div class="rowItem infoValue font attachment-drop" ondragover="allowDrop(event)" ondragenter="activate(event)" ondragleave="deactivate(event)" ondrop="dropped(event)"><span class="progress"></span><em>Drop attachment</em></div>
+          </div>
+
+          <div class="row">
+            <div class="rowItem infoKey font">SCALE</div>
+            <div class="rowItem infoValue font attachment-drop" ondragover="allowDrop(event)" ondragenter="activate(event)" ondragleave="deactivate(event)" ondrop="dropped(event)"><span class="progress"></span><em>Drop attachment</em></div>
+          </div>
+
+          <ul id="attachments">
+          </ul>
+
+          <div class="row">
+            <div style="width: 100%; display: flex;">
+              <button class="reply-button" onclick="draftUpdate()">Draft an update</button>
+            </div>
+          </div>
         </div>
       </div>
-
-      <div id="dropzone" class="width100percent">
-        <div id="dropzone-zone" class="font" onmouseover="enteredZone()" onmouseout="leftZone()" onmouseup="droppedZone()">Drop PoD here</div>
-        <div id="dropzone-done" class="font">proof-of-delivery.pdf</div>
-      </div>
-    </div>
   </body>
 </html>
